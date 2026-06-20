@@ -1,4 +1,5 @@
 """Testes específicos das rotas do Marco 2 — Compliance & Segurança"""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime, timezone
@@ -9,14 +10,23 @@ def make_execute_result(value=None, scalars_first=None, scalars_all=None):
     mock = MagicMock()
     mock.scalar_one_or_none.return_value = value
     scalars_mock = MagicMock()
-    scalars_mock.first.return_value = scalars_first if scalars_first is not None else value
-    scalars_mock.all.return_value = scalars_all or ([scalars_first] if scalars_first is not None else [value] if value is not None else [])
+    scalars_mock.first.return_value = (
+        scalars_first if scalars_first is not None else value
+    )
+    scalars_mock.all.return_value = scalars_all or (
+        [scalars_first]
+        if scalars_first is not None
+        else [value]
+        if value is not None
+        else []
+    )
     mock.scalars.return_value = scalars_mock
     return mock
 
 
 async def _mock_refresh(obj):
     from app.models import User
+
     if isinstance(obj, User):
         if obj.two_fa_enabled is None:
             obj.two_fa_enabled = False
@@ -80,12 +90,15 @@ class TestTwoFactor:
 
 class TestConsents:
     def test_create_consent_without_token(self, setup_mocks):
-        response = client.post("/consents", json={
-            "patient_id": "00000000-0000-0000-0000-000000000001",
-            "consent_type": "ai_analysis",
-            "consent_text": "I agree",
-            "signed_at": "2026-01-01T00:00:00Z",
-        })
+        response = client.post(
+            "/consents",
+            json={
+                "patient_id": "00000000-0000-0000-0000-000000000001",
+                "consent_type": "ai_analysis",
+                "consent_text": "I agree",
+                "signed_at": "2026-01-01T00:00:00Z",
+            },
+        )
         assert response.status_code == 401
 
     def test_list_consents_without_token(self, setup_mocks):
@@ -95,7 +108,9 @@ class TestConsents:
 
 class TestAccess:
     def test_grant_access_without_token(self, setup_mocks):
-        response = client.post("/access/grant?doctor_id=a&patient_id=b&access_level=read")
+        response = client.post(
+            "/access/grant?doctor_id=a&patient_id=b&access_level=read"
+        )
         assert response.status_code == 401
 
 
@@ -105,7 +120,9 @@ class TestLGPD:
         assert response.status_code == 401
 
     def test_correction_without_token(self, setup_mocks):
-        response = client.post("/lgpd/correction?patient_id=1&field=name&new_value=x&reason=test")
+        response = client.post(
+            "/lgpd/correction?patient_id=1&field=name&new_value=x&reason=test"
+        )
         assert response.status_code == 401
 
 

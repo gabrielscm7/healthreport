@@ -20,7 +20,13 @@ from app.models import (
 
 class TestUserModel:
     def test_create_user(self):
-        user = User(email="test@clinic.com", password_hash="hash", role="doctor", full_name="Dr. Silva", crm="12345-SP")
+        user = User(
+            email="test@clinic.com",
+            password_hash="hash",
+            role="doctor",
+            full_name="Dr. Silva",
+            crm="12345-SP",
+        )
         assert user.email == "test@clinic.com"
         assert user.role == "doctor"
         assert user.full_name == "Dr. Silva"
@@ -34,7 +40,12 @@ class TestUserModel:
 
 class TestPatientModel:
     def test_create_patient(self):
-        patient = Patient(full_name="João Silva", cpf_hash="abc123hash", date_of_birth=None, contact_phone="551199999999")
+        patient = Patient(
+            full_name="João Silva",
+            cpf_hash="abc123hash",
+            date_of_birth=None,
+            contact_phone="551199999999",
+        )
         assert patient.full_name == "João Silva"
         assert patient.cpf_hash == "abc123hash"
 

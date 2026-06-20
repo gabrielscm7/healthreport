@@ -1,5 +1,10 @@
 import pytest
-from app.security import hash_password, verify_password, create_access_token, decode_access_token
+from app.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    decode_access_token,
+)
 
 
 class TestPasswordHashing:

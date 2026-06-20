@@ -9,6 +9,7 @@ from app.main import app
 
 async def _mock_refresh(obj):
     from app.models import User
+
     if isinstance(obj, User):
         if obj.two_fa_enabled is None:
             obj.two_fa_enabled = False

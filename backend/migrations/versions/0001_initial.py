@@ -4,6 +4,7 @@ Revision ID: 0001_initial
 Revises:
 Create Date: 2026-06-19
 """
+
 from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
@@ -21,7 +22,12 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "users",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("email", sa.String(255), unique=True, nullable=False),
         sa.Column("password_hash", sa.String(255), nullable=False),
         sa.Column(
@@ -46,7 +52,12 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "patients",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("full_name", sa.String(255), nullable=False),
         sa.Column("cpf_hash", sa.String(255), unique=True),
         sa.Column("date_of_birth", sa.Date()),
@@ -61,9 +72,21 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "patient_consents",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("patient_id", UUID(as_uuid=True), sa.ForeignKey("patients.id"), nullable=False),
-        sa.Column("doctor_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "patient_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("patients.id"),
+            nullable=False,
+        ),
+        sa.Column(
+            "doctor_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False
+        ),
         sa.Column(
             "consent_type",
             sa.Enum("ai_analysis", "data_storage", "research", name="consenttype"),
@@ -79,15 +102,27 @@ def upgrade() -> None:
     )
     op.create_index("idx_consents_patient", "patient_consents", ["patient_id"])
     op.create_index("idx_consents_expiry", "patient_consents", ["expires_at"])
-    op.create_check_constraint("consent_must_be_explicit", "patient_consents", "signed_at IS NOT NULL")
+    op.create_check_constraint(
+        "consent_must_be_explicit", "patient_consents", "signed_at IS NOT NULL"
+    )
 
     # ------------------------------------------------------------------
     # 4. medical_exams
     # ------------------------------------------------------------------
     op.create_table(
         "medical_exams",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("patient_id", UUID(as_uuid=True), sa.ForeignKey("patients.id"), nullable=False),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "patient_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("patients.id"),
+            nullable=False,
+        ),
         sa.Column("exam_type", sa.String(100), nullable=False),
         sa.Column("exam_date", sa.Date(), nullable=False),
         sa.Column("content_encrypted", BYTEA(), nullable=False),
@@ -107,9 +142,24 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "medical_reports",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("patient_id", UUID(as_uuid=True), sa.ForeignKey("patients.id"), nullable=False),
-        sa.Column("requesting_doctor_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "patient_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("patients.id"),
+            nullable=False,
+        ),
+        sa.Column(
+            "requesting_doctor_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("users.id"),
+            nullable=False,
+        ),
         sa.Column("exams_used", ARRAY(UUID(as_uuid=True)), nullable=False),
         sa.Column("report_content_encrypted", BYTEA(), nullable=False),
         sa.Column("report_nonce", sa.String(255), nullable=False),
@@ -148,10 +198,14 @@ def upgrade() -> None:
         sa.Column("error_message", sa.Text()),
         sa.Column("ip_address", INET(), nullable=False),
         sa.Column("user_agent", sa.Text()),
-        sa.Column("timestamp", sa.DateTime(), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "timestamp", sa.DateTime(), nullable=False, server_default=sa.text("now()")
+        ),
         sa.Column("duration_ms", sa.Integer()),
         sa.Column("request_id", sa.String(255)),
-        sa.Column("created_at", sa.DateTime(), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at", sa.DateTime(), nullable=False, server_default=sa.text("now()")
+        ),
     )
     op.create_index("idx_audit_patient", "audit_logs", ["patient_id"])
     op.create_index("idx_audit_user", "audit_logs", ["user_id"])
@@ -168,7 +222,12 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "async_tasks",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("task_type", sa.String(100), nullable=False),
         sa.Column("patient_id", UUID(as_uuid=True), sa.ForeignKey("patients.id")),
         sa.Column("status", sa.String(20), server_default="pending"),
@@ -189,15 +248,29 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     op.create_table(
         "doctor_patient_access",
-        sa.Column("id", UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("doctor_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
-        sa.Column("patient_id", UUID(as_uuid=True), sa.ForeignKey("patients.id"), nullable=False),
+        sa.Column(
+            "id",
+            UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "doctor_id", UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False
+        ),
+        sa.Column(
+            "patient_id",
+            UUID(as_uuid=True),
+            sa.ForeignKey("patients.id"),
+            nullable=False,
+        ),
         sa.Column("access_level", sa.String(50), nullable=False),
         sa.Column("access_granted_at", sa.DateTime(), server_default=sa.text("now()")),
         sa.Column("access_revoked_at", sa.DateTime(), nullable=True),
         sa.Column("granted_by", UUID(as_uuid=True), sa.ForeignKey("users.id")),
     )
-    op.create_unique_constraint("uq_doctor_patient", "doctor_patient_access", ["doctor_id", "patient_id"])
+    op.create_unique_constraint(
+        "uq_doctor_patient", "doctor_patient_access", ["doctor_id", "patient_id"]
+    )
     op.create_index("idx_access_doctor", "doctor_patient_access", ["doctor_id"])
     op.create_index("idx_access_patient", "doctor_patient_access", ["patient_id"])
 

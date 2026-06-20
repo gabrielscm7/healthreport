@@ -10,6 +10,7 @@ Requer env vars:
     ENCRYPTION_KEY — chave AES-256 para criptografar o dump
     BACKUP_DIR — diretório de destino (default: /data/backups)
 """
+
 import os
 import sys
 import subprocess
@@ -52,13 +53,21 @@ def encrypt_backup(filepath: Path) -> str:
     key_hex = hashlib.sha256(key.encode()).hexdigest()
     enc_path = str(filepath) + ".enc"
 
-    subprocess.run([
-        "openssl", "enc", "-aes-256-cbc",
-        "-salt",
-        "-in", str(filepath),
-        "-out", enc_path,
-        "-pass", f"pass:{key_hex}",
-    ], check=True)
+    subprocess.run(
+        [
+            "openssl",
+            "enc",
+            "-aes-256-cbc",
+            "-salt",
+            "-in",
+            str(filepath),
+            "-out",
+            enc_path,
+            "-pass",
+            f"pass:{key_hex}",
+        ],
+        check=True,
+    )
 
     sha = hashlib.sha256()
     with open(enc_path, "rb") as f:
@@ -82,17 +91,27 @@ def run_backup():
 
     print(f"[{timestamp}] Starting backup of {db_info['dbname']}...")
 
-    subprocess.run([
-        "pg_dump",
-        "-h", db_info["host"],
-        "-p", db_info["port"],
-        "-U", db_info["user"],
-        "-d", db_info["dbname"],
-        "-F", "p",
-        "-f", str(filepath),
-        "--no-owner",
-        "--no-acl",
-    ], env=env, check=True)
+    subprocess.run(
+        [
+            "pg_dump",
+            "-h",
+            db_info["host"],
+            "-p",
+            db_info["port"],
+            "-U",
+            db_info["user"],
+            "-d",
+            db_info["dbname"],
+            "-F",
+            "p",
+            "-f",
+            str(filepath),
+            "--no-owner",
+            "--no-acl",
+        ],
+        env=env,
+        check=True,
+    )
 
     size_mb = filepath.stat().st_size / (1024 * 1024)
     print(f"[{timestamp}] Backup created: {filepath} ({size_mb:.2f} MB)")

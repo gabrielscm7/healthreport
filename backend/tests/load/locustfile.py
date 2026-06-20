@@ -7,6 +7,7 @@ Usage:
 Dev mode:
     locust -f tests/load/locustfile.py --host=http://localhost:8000
 """
+
 from locust import HttpUser, task, between
 
 
