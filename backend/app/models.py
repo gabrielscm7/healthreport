@@ -3,8 +3,18 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
-    Column, String, Boolean, DateTime, Date, Integer, Float,
-    Text, ForeignKey, UniqueConstraint, Index, CheckConstraint,
+    Column,
+    String,
+    Boolean,
+    DateTime,
+    Date,
+    Integer,
+    Float,
+    Text,
+    ForeignKey,
+    UniqueConstraint,
+    Index,
+    CheckConstraint,
     Enum as SAEnum,
 )
 from sqlalchemy.dialects.postgresql import UUID, INET, JSONB, ARRAY, BYTEA, BIGINT
@@ -20,6 +30,7 @@ def new_uuid() -> str:
 # ---------------------------------------------------------------------------
 # ENUMS
 # ---------------------------------------------------------------------------
+
 
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
@@ -67,6 +78,7 @@ class TaskType(str, enum.Enum):
 # ---------------------------------------------------------------------------
 # MODELS
 # ---------------------------------------------------------------------------
+
 
 class User(Base):
     __tablename__ = "users"
@@ -155,7 +167,9 @@ class MedicalReport(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
-    requesting_doctor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    requesting_doctor_id = Column(
+        UUID(as_uuid=True), ForeignKey("users.id"), nullable=False
+    )
     exams_used = Column(ARRAY(UUID(as_uuid=True)), nullable=False)
     report_content_encrypted = Column(BYTEA, nullable=False)
     report_nonce = Column(String(255), nullable=False)
@@ -227,8 +241,12 @@ class ExamComparison(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
-    exam_before_id = Column(UUID(as_uuid=True), ForeignKey("medical_exams.id"), nullable=False)
-    exam_after_id = Column(UUID(as_uuid=True), ForeignKey("medical_exams.id"), nullable=False)
+    exam_before_id = Column(
+        UUID(as_uuid=True), ForeignKey("medical_exams.id"), nullable=False
+    )
+    exam_after_id = Column(
+        UUID(as_uuid=True), ForeignKey("medical_exams.id"), nullable=False
+    )
     comparison_result_encrypted = Column(BYTEA)
     comparison_nonce = Column(String(255))
     comparison_tag = Column(String(255))
@@ -236,9 +254,7 @@ class ExamComparison(Base):
     generated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    __table_args__ = (
-        Index("idx_comparisons_patient", "patient_id"),
-    )
+    __table_args__ = (Index("idx_comparisons_patient", "patient_id"),)
 
 
 class DoctorPatientAccess(Base):

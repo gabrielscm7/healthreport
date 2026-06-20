@@ -20,7 +20,9 @@ async def create_consent(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(require_role("admin", "doctor")),
 ):
-    patient_result = await db.execute(select(Patient).where(Patient.id == payload.patient_id))
+    patient_result = await db.execute(
+        select(Patient).where(Patient.id == payload.patient_id)
+    )
     patient = patient_result.scalar_one_or_none()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
@@ -96,7 +98,9 @@ async def revoke_consent(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(require_role("admin", "doctor")),
 ):
-    result = await db.execute(select(PatientConsent).where(PatientConsent.id == consent_id))
+    result = await db.execute(
+        select(PatientConsent).where(PatientConsent.id == consent_id)
+    )
     consent = result.scalar_one_or_none()
     if not consent:
         raise HTTPException(status_code=404, detail="Consent not found")

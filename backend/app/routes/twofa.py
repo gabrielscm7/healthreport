@@ -51,7 +51,9 @@ async def verify_2fa(
         raise HTTPException(status_code=404, detail="User not found")
 
     if not user.two_fa_secret:
-        raise HTTPException(status_code=400, detail="2FA not set up. Call /auth/2fa/setup first")
+        raise HTTPException(
+            status_code=400, detail="2FA not set up. Call /auth/2fa/setup first"
+        )
 
     totp = pyotp.TOTP(user.two_fa_secret)
     if not totp.verify(code):

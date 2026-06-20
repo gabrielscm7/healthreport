@@ -68,5 +68,7 @@ app.include_router(comparison_router)
 # Serve frontend SPA at /app (or root URL for Railway)
 frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
 if frontend_dir.exists():
-    app.mount("/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+    app.mount(
+        "/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend"
+    )
     print(f"Frontend mounted at /app — {frontend_dir}")

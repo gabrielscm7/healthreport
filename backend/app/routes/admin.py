@@ -9,7 +9,12 @@ from app.db import get_db
 from app.models import MedicalExam, Patient, AsyncTask, AuditLog
 from app.schemas import AdminProcessRequest, AdminProcessResponse, ExamResponse
 from app.security import get_current_user, require_role
-from app.agents.admin_agent import list_google_docs, read_google_doc, convert_to_markdown, upload_to_s3
+from app.agents.admin_agent import (
+    list_google_docs,
+    read_google_doc,
+    convert_to_markdown,
+    upload_to_s3,
+)
 from app.utils.encryption import encrypt_aes256
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -44,7 +49,9 @@ async def process_documents(
     db: AsyncSession = Depends(get_db),
     current_user: dict = Depends(require_role("admin", "doctor")),
 ):
-    patient_result = await db.execute(select(Patient).where(Patient.id == payload.patient_id))
+    patient_result = await db.execute(
+        select(Patient).where(Patient.id == payload.patient_id)
+    )
     patient = patient_result.scalar_one_or_none()
     if not patient:
         raise HTTPException(status_code=404, detail="Patient not found")
@@ -52,8 +59,12 @@ async def process_documents(
     user_id = current_user["sub"]
 
     await _log_audit(
-        db, "ORGANIZE_START", "success",
-        patient_id=str(patient.id), user_id=user_id, resource_type="exam",
+        db,
+        "ORGANIZE_START",
+        "success",
+        patient_id=str(patient.id),
+        user_id=user_id,
+        resource_type="exam",
     )
 
     try:
@@ -110,8 +121,12 @@ async def process_documents(
         db.add(task)
 
         await _log_audit(
-            db, "ORGANIZE_SUCCESS", "success",
-            patient_id=str(patient.id), user_id=user_id, resource_type="exam",
+            db,
+            "ORGANIZE_SUCCESS",
+            "success",
+            patient_id=str(patient.id),
+            user_id=user_id,
+            resource_type="exam",
         )
 
         await db.commit()
@@ -126,8 +141,12 @@ async def process_documents(
 
     except Exception as e:
         await _log_audit(
-            db, "ORGANIZE_ERROR", "error",
-            patient_id=str(patient.id), user_id=user_id, resource_type="exam",
+            db,
+            "ORGANIZE_ERROR",
+            "error",
+            patient_id=str(patient.id),
+            user_id=user_id,
+            resource_type="exam",
             error_message=str(e),
         )
         await db.commit()

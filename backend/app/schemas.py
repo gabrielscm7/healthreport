@@ -9,6 +9,7 @@ from pydantic import BaseModel, EmailStr, Field
 # USERS
 # ============================================================
 
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8)
@@ -63,6 +64,7 @@ class TokenResponse(BaseModel):
 # PATIENTS
 # ============================================================
 
+
 class PatientCreate(BaseModel):
     full_name: str = Field(min_length=1)
     cpf_hash: Optional[str] = None
@@ -90,6 +92,7 @@ class PatientUpdate(BaseModel):
 # ============================================================
 # MEDICAL EXAMS
 # ============================================================
+
 
 class ExamCreate(BaseModel):
     patient_id: UUID
@@ -125,6 +128,7 @@ class ExamListResponse(BaseModel):
 # ============================================================
 # MEDICAL REPORTS
 # ============================================================
+
 
 class FindingItem(BaseModel):
     finding: str
@@ -175,6 +179,7 @@ class ReportDetailResponse(ReportResponse):
 # ADMIN PROCESS
 # ============================================================
 
+
 class AdminProcessRequest(BaseModel):
     action: str = "organize_documents"
     query: str
@@ -193,6 +198,7 @@ class AdminProcessResponse(BaseModel):
 # SPECIALIST REPORT
 # ============================================================
 
+
 class SpecialistRequest(BaseModel):
     patient_id: UUID
     exams_markdown: str
@@ -208,6 +214,7 @@ class SpecialistResponse(BaseModel):
 # ============================================================
 # AUDIT LOG
 # ============================================================
+
 
 class AuditLogResponse(BaseModel):
     id: int
@@ -236,6 +243,7 @@ class AuditLogListResponse(BaseModel):
 # ASYNC TASKS
 # ============================================================
 
+
 class TaskResponse(BaseModel):
     id: UUID
     task_type: str
@@ -256,6 +264,7 @@ class TaskResponse(BaseModel):
 # ============================================================
 # CONSENT
 # ============================================================
+
 
 class ConsentCreate(BaseModel):
     patient_id: UUID
@@ -284,6 +293,7 @@ class ConsentResponse(BaseModel):
 # ============================================================
 # WHABA WEBHOOK
 # ============================================================
+
 
 class WhahaMessage(BaseModel):
     from_: str = Field(alias="from")

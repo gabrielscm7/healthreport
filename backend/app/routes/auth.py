@@ -29,7 +29,9 @@ from app.security import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
     existing = await db.execute(select(User).where(User.email == payload.email))
     if existing.scalar_one_or_none():
@@ -86,7 +88,9 @@ async def refresh_token(payload: RefreshRequest):
     if not payload_data or payload_data.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    access_token = create_access_token({"sub": payload_data["sub"], "role": payload_data.get("role", "doctor")})
+    access_token = create_access_token(
+        {"sub": payload_data["sub"], "role": payload_data.get("role", "doctor")}
+    )
     return TokenResponse(access_token=access_token)
 
 

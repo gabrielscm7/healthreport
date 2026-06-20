@@ -6,7 +6,7 @@ from app.config import get_settings
 
 settings = get_settings()
 
-# Captura a URL vinda das configurações
+
 db_url = settings.DATABASE_URL
 
 # Converte o esquema padrão do Postgres para o driver assíncrono asyncpg
@@ -23,8 +23,10 @@ engine = create_async_engine(
 
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+
 class Base(DeclarativeBase):
     pass
+
 
 # Tipagem corrigida para remover o erro do VS Code (AsyncGenerator)
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

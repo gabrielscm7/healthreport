@@ -7,6 +7,7 @@ def init_sentry():
         return
 
     from app.config import get_settings
+
     settings = get_settings()
 
     if not settings.SENTRY_DSN:

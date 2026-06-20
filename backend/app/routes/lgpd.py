@@ -77,12 +77,16 @@ async def request_correction(
 
     allowed_fields = {"full_name", "date_of_birth", "contact_phone"}
     if field not in allowed_fields:
-        raise HTTPException(status_code=400, detail=f"Field '{field}' cannot be corrected. Allowed: {allowed_fields}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Field '{field}' cannot be corrected. Allowed: {allowed_fields}",
+        )
 
     if field == "full_name":
         patient.full_name = new_value
     elif field == "date_of_birth":
         from datetime import date
+
         patient.date_of_birth = date.fromisoformat(new_value)
     elif field == "contact_phone":
         patient.contact_phone = new_value
@@ -157,4 +161,8 @@ async def request_deletion(
 
     await db.flush()
 
-    return {"status": "deleted", "patient_id": patient_id, "deleted_at": now.isoformat()}
+    return {
+        "status": "deleted",
+        "patient_id": patient_id,
+        "deleted_at": now.isoformat(),
+    }

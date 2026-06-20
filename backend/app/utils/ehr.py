@@ -9,6 +9,7 @@ Uso:
     from app.utils.ehr import export_report_to_fhir
     bundle = export_report_to_fhir(report_data)
 """
+
 from typing import Optional
 
 
@@ -35,29 +36,32 @@ def export_report_to_fhir(
             "id": report_id,
             "status": "final",
             "code": {
-                "coding": [{
-                    "system": "http://loinc.org",
-                    "code": "11502-2",
-                    "display": "Laboratory report"
-                }],
-                "text": "Relatório de Apoio à Decisão Clínica"
+                "coding": [
+                    {
+                        "system": "http://loinc.org",
+                        "code": "11502-2",
+                        "display": "Laboratory report",
+                    }
+                ],
+                "text": "Relatório de Apoio à Decisão Clínica",
             },
             "subject": {
                 "reference": f"Patient/{patient_name}",
-                "display": patient_name
+                "display": patient_name,
             },
-            "performer": [{
-                "reference": f"Practitioner/{doctor_name}",
-                "display": doctor_name
-            }],
+            "performer": [
+                {"reference": f"Practitioner/{doctor_name}", "display": doctor_name}
+            ],
             "conclusion": summary,
-            "presentedForm": [{
-                "contentType": "text/markdown",
-                "data": summary,
-            }],
+            "presentedForm": [
+                {
+                    "contentType": "text/markdown",
+                    "data": summary,
+                }
+            ],
             "effectiveDateTime": generated_at,
             "issued": generated_at,
-        }
+        },
     }
     entries.append(diagnostic_report)
 
@@ -69,23 +73,31 @@ def export_report_to_fhir(
                 "id": f"{report_id}-finding-{idx}",
                 "status": "final",
                 "code": {
-                    "coding": [{
-                        "system": "http://loinc.org",
-                        "code": "75323-6",
-                        "display": "Finding"
-                    }],
-                    "text": finding.get("finding", "Achado relevante")
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "75323-6",
+                            "display": "Finding",
+                        }
+                    ],
+                    "text": finding.get("finding", "Achado relevante"),
                 },
                 "subject": {"reference": f"Patient/{patient_name}"},
                 "valueString": finding.get("relevance", ""),
-                "interpretation": [{
-                    "coding": [{
-                        "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
-                        "code": "CAR",
-                        "display": "Critical"
-                    }]
-                }] if finding.get("confidence", 1.0) < 0.7 else [],
-            }
+                "interpretation": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                                "code": "CAR",
+                                "display": "Critical",
+                            }
+                        ]
+                    }
+                ]
+                if finding.get("confidence", 1.0) < 0.7
+                else [],
+            },
         }
         entries.append(obs)
 

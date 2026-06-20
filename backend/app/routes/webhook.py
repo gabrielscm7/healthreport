@@ -59,7 +59,9 @@ async def _resolve_user_by_phone(db: AsyncSession, phone: str) -> User | None:
 
 
 async def _find_patient_by_name(db: AsyncSession, name: str) -> Patient | None:
-    result = await db.execute(select(Patient).where(Patient.full_name.ilike(f"%{name}%")))
+    result = await db.execute(
+        select(Patient).where(Patient.full_name.ilike(f"%{name}%"))
+    )
     return result.scalars().first()
 
 
@@ -157,7 +159,9 @@ def _parse_command(command: str) -> tuple[str | None, str | None]:
 
     for pattern in organize_patterns:
         if pattern in cmd_lower:
-            name = command.lower().split(pattern)[-1].strip().lstrip("de do da ").strip()
+            name = (
+                command.lower().split(pattern)[-1].strip().lstrip("de do da ").strip()
+            )
             return ("organize_exams", name if name else None)
 
     for pattern in report_patterns:
@@ -168,7 +172,9 @@ def _parse_command(command: str) -> tuple[str | None, str | None]:
 
     for pattern in history_patterns:
         if pattern in cmd_lower:
-            name = command.lower().split(pattern)[-1].strip().lstrip("de do da ").strip()
+            name = (
+                command.lower().split(pattern)[-1].strip().lstrip("de do da ").strip()
+            )
             return ("view_history", name if name else None)
 
     for pattern in audit_patterns:

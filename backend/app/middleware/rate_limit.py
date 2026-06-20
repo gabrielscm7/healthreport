@@ -19,12 +19,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Clean old entries for this IP
         self._requests[client_ip] = [
-            t for t in self._requests[client_ip]
-            if now - t < self.window_seconds
+            t for t in self._requests[client_ip] if now - t < self.window_seconds
         ]
 
         if len(self._requests[client_ip]) >= self.max_requests:
-            retry_after = int(self.window_seconds - (now - self._requests[client_ip][0]))
+            retry_after = int(
+                self.window_seconds - (now - self._requests[client_ip][0])
+            )
             raise HTTPException(
                 status_code=429,
                 detail="Too many requests",

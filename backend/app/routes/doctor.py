@@ -67,7 +67,9 @@ async def doctor_dashboard(
     results = []
     for p in patients:
         p_reports = await db.execute(
-            select(func.count(MedicalReport.id)).where(MedicalReport.patient_id == str(p.id))
+            select(func.count(MedicalReport.id)).where(
+                MedicalReport.patient_id == str(p.id)
+            )
         )
         p_exams = await db.execute(
             select(func.count(MedicalExam.id)).where(
@@ -75,12 +77,14 @@ async def doctor_dashboard(
                 MedicalExam.deleted_at.is_(None),
             )
         )
-        results.append({
-            "patient_id": str(p.id),
-            "patient_name": p.full_name,
-            "reports_count": p_reports.scalar() or 0,
-            "exams_count": p_exams.scalar() or 0,
-        })
+        results.append(
+            {
+                "patient_id": str(p.id),
+                "patient_name": p.full_name,
+                "reports_count": p_reports.scalar() or 0,
+                "exams_count": p_exams.scalar() or 0,
+            }
+        )
 
     return {
         "doctor_id": doctor_id,

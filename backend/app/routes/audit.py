@@ -75,7 +75,9 @@ async def export_audit_logs(
     result = await db.execute(query)
     logs = result.scalars().all()
 
-    header = "id,user_id,patient_id,action_type,resource_type,status,ip_address,timestamp\n"
+    header = (
+        "id,user_id,patient_id,action_type,resource_type,status,ip_address,timestamp\n"
+    )
     rows = [
         f"{log.id},{log.user_id},{log.patient_id},{log.action_type},{log.resource_type},{log.status},{log.ip_address},{log.timestamp.isoformat()}"
         for log in logs

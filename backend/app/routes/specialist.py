@@ -38,7 +38,9 @@ async def _check_consent(db: AsyncSession, patient_id: str) -> bool:
     return result.scalar_one_or_none() is not None
 
 
-async def _check_doctor_access(db: AsyncSession, doctor_id: str, patient_id: str) -> bool:
+async def _check_doctor_access(
+    db: AsyncSession, doctor_id: str, patient_id: str
+) -> bool:
     result = await db.execute(
         select(DoctorPatientAccess).where(
             DoctorPatientAccess.doctor_id == doctor_id,
@@ -89,25 +91,38 @@ async def generate_report(
 
     if current_user["role"] != "admin" and not has_access:
         await _log_audit(
-            db, "REPORT_REQUEST", "denied",
-            patient_id=patient_id, user_id=doctor_id,
+            db,
+            "REPORT_REQUEST",
+            "denied",
+            patient_id=patient_id,
+            user_id=doctor_id,
             error_message="No access to patient",
         )
         await db.commit()
-        raise HTTPException(status_code=403, detail="You do not have access to this patient")
+        raise HTTPException(
+            status_code=403, detail="You do not have access to this patient"
+        )
 
     if not has_consent:
         await _log_audit(
-            db, "REPORT_REQUEST", "denied",
-            patient_id=patient_id, user_id=doctor_id,
+            db,
+            "REPORT_REQUEST",
+            "denied",
+            patient_id=patient_id,
+            user_id=doctor_id,
             error_message="Missing patient consent",
         )
         await db.commit()
-        raise HTTPException(status_code=403, detail="Patient consent is required and missing/expired")
+        raise HTTPException(
+            status_code=403, detail="Patient consent is required and missing/expired"
+        )
 
     await _log_audit(
-        db, "REPORT_REQUEST", "success",
-        patient_id=patient_id, user_id=doctor_id,
+        db,
+        "REPORT_REQUEST",
+        "success",
+        patient_id=patient_id,
+        user_id=doctor_id,
     )
 
     try:
@@ -137,8 +152,11 @@ async def generate_report(
         db.add(report)
 
         await _log_audit(
-            db, "REPORT_SUCCESS", "success",
-            patient_id=patient_id, user_id=doctor_id,
+            db,
+            "REPORT_SUCCESS",
+            "success",
+            patient_id=patient_id,
+            user_id=doctor_id,
         )
 
         task = AsyncTask(
@@ -162,12 +180,17 @@ async def generate_report(
 
     except Exception as e:
         await _log_audit(
-            db, "REPORT_ERROR", "error",
-            patient_id=patient_id, user_id=doctor_id,
+            db,
+            "REPORT_ERROR",
+            "error",
+            patient_id=patient_id,
+            user_id=doctor_id,
             error_message=str(e),
         )
         await db.commit()
-        raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Report generation failed: {str(e)}"
+        )
 
 
 @router.get("/reports/{patient_id}", response_model=list[ReportResponse])
@@ -190,7 +213,9 @@ async def get_report(
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(get_current_user),
 ):
-    result = await db.execute(select(MedicalReport).where(MedicalReport.id == report_id))
+    result = await db.execute(
+        select(MedicalReport).where(MedicalReport.id == report_id)
+    )
     report = result.scalar_one_or_none()
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
