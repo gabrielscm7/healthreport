@@ -1,0 +1,22 @@
+# backend
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+htmlcov/
+.coverage
+.pytest_cache/
+migrations/versions/
+
+# frontend & node dependencies
+node_modules/
+.eslintcache
+.DS_Store
+dist-frontend/
+
+# Local configuration files
+.context
