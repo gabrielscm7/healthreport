@@ -1,6 +1,7 @@
 import enum
 import uuid
 from datetime import datetime
+from sqlalchemy import func
 
 from sqlalchemy import (
     Column,
@@ -92,8 +93,8 @@ class User(Base):
     phone = Column(String(20))
     two_fa_enabled = Column(Boolean, default=False)
     two_fa_secret = Column(String(255))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
     deleted_at = Column(DateTime, nullable=True)
 
     __table_args__ = (
@@ -110,7 +111,7 @@ class Patient(Base):
     cpf_hash = Column(String(255), unique=True)
     date_of_birth = Column(Date)
     contact_phone = Column(String(20))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, server_default=func.now())
 
     __table_args__ = (
         Index("idx_patients_cpf_hash", "cpf_hash"),
@@ -131,7 +132,7 @@ class PatientConsent(Base):
     ip_address = Column(INET)
     user_agent = Column(Text)
     signature_hash = Column(String(255))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, server_default=func.now())
 
     __table_args__ = (
         Index("idx_consents_patient", "patient_id"),
@@ -153,7 +154,7 @@ class MedicalExam(Base):
     google_doc_id = Column(String(255))
     markdown_content_encrypted = Column(BYTEA)
     uploaded_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
+    uploaded_at = Column(DateTime, server_default=func.now())
     deleted_at = Column(DateTime, nullable=True)
 
     __table_args__ = (
@@ -177,7 +178,7 @@ class MedicalReport(Base):
     report_format = Column(SAEnum(ReportFormat), default=ReportFormat.JSON)
     model_version = Column(String(50), nullable=False)
     model_confidence = Column(Float)
-    generated_at = Column(DateTime, default=datetime.utcnow)
+    generated_at = Column(DateTime, server_default=func.now())
     expires_at = Column(DateTime)
     status = Column(SAEnum(ReportStatus), default=ReportStatus.GENERATING)
     error_message = Column(Text)
@@ -201,10 +202,10 @@ class AuditLog(Base):
     error_message = Column(Text)
     ip_address = Column(INET, nullable=False)
     user_agent = Column(Text)
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
+    timestamp = Column(DateTime, nullable=False, server_default=func.now())
     duration_ms = Column(Integer)
     request_id = Column(String(255))
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     __table_args__ = (
         Index("idx_audit_patient", "patient_id"),
@@ -224,7 +225,7 @@ class AsyncTask(Base):
     input_data = Column(JSONB)
     output_data = Column(JSONB)
     error_message = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, server_default=func.now())
     started_at = Column(DateTime)
     completed_at = Column(DateTime)
     retry_count = Column(Integer, default=0)
@@ -252,7 +253,7 @@ class ExamComparison(Base):
     comparison_tag = Column(String(255))
     differences = Column(JSONB)
     generated_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, server_default=func.now())
 
     __table_args__ = (Index("idx_comparisons_patient", "patient_id"),)
 
@@ -264,7 +265,7 @@ class DoctorPatientAccess(Base):
     doctor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
     access_level = Column(String(50), nullable=False)
-    access_granted_at = Column(DateTime, default=datetime.utcnow)
+    access_granted_at = Column(DateTime, server_default=func.now())
     access_revoked_at = Column(DateTime, nullable=True)
     granted_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
 
