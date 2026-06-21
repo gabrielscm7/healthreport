@@ -100,7 +100,7 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
       - name: Deploy to Railway
-        run: railway up --service healthreport
+        run: railway up --service healthreport --project "5be0c83d-d040-44ff-8e39-ff20958360c5"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         working-directory: backend
