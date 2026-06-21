@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid4
+from typing import AsyncGenerator
 
 import pyotp
 from fastapi import APIRouter, Depends, HTTPException, status
