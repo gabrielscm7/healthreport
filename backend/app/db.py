@@ -13,7 +13,6 @@ engine = create_async_engine(
 )
 
 # 2. Configuração correta do Sessionmaker para o modo Assíncrono
-# Removemos o scoped_session completamente daqui
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -23,19 +22,13 @@ AsyncSessionLocal = async_sessionmaker(
 Base = declarative_base()
 
 # 3. Gerenciador de dependência injetado corretamente por requisição (Event Loop isolado)
-async def get_db():
-    async with AsyncSessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
-
-# Tipagem corrigida para remover o erro do VS Code (AsyncGenerator)
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with async_session() as session:
+    async with AsyncSessionLocal() as session:
         try:
             yield session
             await session.commit()
         except Exception:
             await session.rollback()
             raise
+        finally:
+            await session.close()
