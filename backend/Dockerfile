@@ -16,4 +16,4 @@ COPY . .
 EXPOSE 8080
 
 # Usamos a variável $PORT que o Railway dá. Se ela não existir, ele usa a 8080 por padrão.
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port $PORT"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
