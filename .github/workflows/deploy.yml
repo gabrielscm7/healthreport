@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install Railway CLI
-        run: bash -c "curl -fsSL https://railway.app/install.sh | sh"
+        run: bash -curl -fsSL https://railway.app/install.sh | sh
       - name: Deploy to Railway
         run: railway up
         env:
