@@ -1,32 +1,33 @@
-from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase
-
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import declarative_base
 from app.config import get_settings
 
 settings = get_settings()
 
-
-db_url = settings.DATABASE_URL
-
-# Converte o esquema padrão do Postgres para o driver assíncrono asyncpg
-if db_url and db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-# Cria o motor assíncrono com a URL corrigida
+# 1. Criação do Engine Assíncrono com pool para evitar quedas no Railway
 engine = create_async_engine(
-    db_url,
-    echo=settings.DEBUG,
-    pool_size=10,
-    max_overflow=20,
+    settings.DATABASE_URL,
+    pool_pre_ping=True,
+    future=True
 )
 
-async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+# 2. Configuração correta do Sessionmaker para o modo Assíncrono
+# Removemos o scoped_session completamente daqui
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
+Base = declarative_base()
 
-class Base(DeclarativeBase):
-    pass
-
+# 3. Gerenciador de dependência injetado corretamente por requisição (Event Loop isolado)
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
 
 # Tipagem corrigida para remover o erro do VS Code (AsyncGenerator)
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
