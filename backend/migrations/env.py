@@ -1,4 +1,5 @@
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 
@@ -8,6 +9,14 @@ if config.config_file_name is not None:
 
 from app.db import Base
 from app import models  # noqa: F401
+
+import os
+
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    # Alembic usa conexão síncrona; converte de asyncpg para psycopg2
+    sync_url = database_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
+    config.set_main_option("sqlalchemy.url", sync_url)
 
 target_metadata = Base.metadata
 
