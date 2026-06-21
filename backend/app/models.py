@@ -87,7 +87,10 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(255), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-    role = Column(SAEnum(UserRole), nullable=False)
+    role = Column(
+        SAEnum(UserRole, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
     full_name = Column(String(255))
     crm = Column(String(20))
     phone = Column(String(20))
@@ -125,7 +128,10 @@ class PatientConsent(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     patient_id = Column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
     doctor_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
-    consent_type = Column(SAEnum(ConsentType), nullable=False)
+    consent_type = Column(
+        SAEnum(ConsentType, values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
+    )
     consent_text = Column(Text, nullable=False)
     signed_at = Column(DateTime, nullable=False)
     expires_at = Column(DateTime)
@@ -175,12 +181,18 @@ class MedicalReport(Base):
     report_content_encrypted = Column(BYTEA, nullable=False)
     report_nonce = Column(String(255), nullable=False)
     report_tag = Column(String(255), nullable=False)
-    report_format = Column(SAEnum(ReportFormat), default=ReportFormat.JSON)
+    report_format = Column(
+        SAEnum(ReportFormat, values_callable=lambda x: [e.value for e in x]),
+        default=ReportFormat.JSON,
+    )
     model_version = Column(String(50), nullable=False)
     model_confidence = Column(Float)
     generated_at = Column(DateTime, server_default=func.now())
     expires_at = Column(DateTime)
-    status = Column(SAEnum(ReportStatus), default=ReportStatus.GENERATING)
+    status = Column(
+        SAEnum(ReportStatus, values_callable=lambda x: [e.value for e in x]),
+        default=ReportStatus.GENERATING,
+    )
     error_message = Column(Text)
 
     __table_args__ = (
