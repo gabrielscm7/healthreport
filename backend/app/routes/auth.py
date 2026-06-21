@@ -47,14 +47,13 @@ async def register(payload: UserCreate, db: AsyncSession = Depends(get_db)):
         phone=payload.phone,
     )
     db.add(user)
-    await db.flush()
+    await db.commit()  # Garante a gravação no banco do Railway
     await db.refresh(user)
     return user
 
 
 @router.post("/login", response_model=LoginResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
-    # CORRIGIDO: Utilizando select assíncrono em vez de db.query
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 
@@ -67,7 +66,7 @@ async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
     refresh_token = create_access_token(
         data={"sub": str(user.id)}, expires_delta=None
-    )  # Ajuste conforme sua lógica de refresh
+    )
 
     return {
         "access_token": access_token,
@@ -84,7 +83,6 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     user_id = payload_data.get("sub")
-    # CORRIGIDO: Utilizando select assíncrono em vez de db.query
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
@@ -100,7 +98,6 @@ async def get_me(
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # CORRIGIDO: Utilizando select assíncrono em vez de db.query
     result = await db.execute(select(User).where(User.id == current_user["sub"]))
     user = result.scalar_one_or_none()
     if not user:
@@ -127,7 +124,7 @@ async def update_me(
         user.two_fa_enabled = payload.two_fa_enabled
 
     user.updated_at = datetime.now(timezone.utc)
-    await db.flush()
+    await db.commit()  # Confirma as alterações do perfil
     await db.refresh(user)
     return user
 
@@ -137,7 +134,8 @@ async def list_users(
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(require_role("admin")),
 ):
-    result = await db.execute(select(User).where(User.deleted_at.is_(None))):
+    # CORRIGIDO: Dois pontos removidos do final desta linha!
+    result = await db.execute(select(User).where(User.deleted_at.is_(None)))
     return result.scalars().all()
 
 
@@ -147,7 +145,6 @@ async def get_user(
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(require_role("admin")),
 ):
-    # CORRIGIDO: Utilizando select assíncrono em vez de db.query
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
