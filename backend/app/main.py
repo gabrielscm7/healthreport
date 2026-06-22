@@ -65,8 +65,8 @@ app.include_router(doctor_router)
 app.include_router(patient_portal_router)
 app.include_router(comparison_router)
 
-# Serve frontend SPA at /app (or root URL for Railway)
-frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
+# Serve frontend SPA at /app
+frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
 if frontend_dir.exists():
     app.mount(
         "/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend"

@@ -2,11 +2,15 @@ const API = (() => {
   function detectBase() {
     const saved = localStorage.getItem('api_base');
     if (saved) return saved;
-    // Same-origin: frontend served by FastAPI
-    if (window.location.port === '8000' || window.location.port === '') {
-      return window.location.origin;
+    
+    // Em produção (Railway): window.location.origin já aponta pro backend
+    // Em dev local: se estiver em localhost:8000, usa o origin
+    // Se estiver em localhost:3000 (dev separado), fallback pra localhost:8000
+    
+    if (window.location.hostname === 'localhost' && window.location.port !== '8000') {
+      return 'http://localhost:8000';
     }
-    return 'http://localhost:8000';
+    return window.location.origin;  // Produção: railway.app
   }
 
   const BASE = detectBase();
