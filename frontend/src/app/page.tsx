@@ -11,12 +11,22 @@ export default function LoginPage() {
   const [showTotp, setShowTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Register
+  const [showRegister, setShowRegister] = useState(false);
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regCrm, setRegCrm] = useState("");
+  const [regRole, setRegRole] = useState("doctor");
+  const [regError, setRegError] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+
   const router = useRouter();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       const data = await api.login(email, password, totp || undefined);
       localStorage.setItem("token", data.access_token);
@@ -28,9 +38,20 @@ export default function LoginPage() {
       } else {
         setError(err.message);
       }
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
+  }
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setRegError(""); setRegLoading(true);
+    try {
+      await api.register(regEmail, regPassword, regRole, regName || undefined, regCrm || undefined);
+      const data = await api.login(regEmail, regPassword);
+      localStorage.setItem("token", data.access_token);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setRegError(err.message);
+    } finally { setRegLoading(false); }
   }
 
   return (
@@ -41,26 +62,65 @@ export default function LoginPage() {
           <h1 style={{ fontSize: "1.5rem", fontWeight: 700 }}>Medical Reports</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: ".875rem", marginTop: 4 }}>Sistema de Apoio à Decisão Clínica</p>
         </div>
-        <form onSubmit={handleLogin}>
-          <div className="field">
-            <label>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="medico@clinic.com" required />
-          </div>
-          <div className="field">
-            <label>Senha</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
-          </div>
-          {showTotp && (
+
+        {!showRegister ? (
+          <form onSubmit={handleLogin}>
             <div className="field">
-              <label>Código 2FA</label>
-              <input type="text" value={totp} onChange={(e) => setTotp(e.target.value)} placeholder="000000" maxLength={6} />
+              <label>Email</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="medico@clinic.com" required />
             </div>
-          )}
-          {error && <div className="msg-error">{error}</div>}
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%", marginTop: 8 }}>
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
+            <div className="field">
+              <label>Senha</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+            </div>
+            {showTotp && (
+              <div className="field">
+                <label>Código 2FA</label>
+                <input type="text" value={totp} onChange={(e) => setTotp(e.target.value)} placeholder="000000" maxLength={6} />
+              </div>
+            )}
+            {error && <div className="msg-error">{error}</div>}
+            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%", marginTop: 8 }}>
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister}>
+            <div className="field">
+              <label>Email</label>
+              <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} placeholder="novo@clinic.com" required />
+            </div>
+            <div className="field">
+              <label>Senha</label>
+              <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} placeholder="mínimo 8 caracteres" minLength={8} required />
+            </div>
+            <div className="field">
+              <label>Nome completo</label>
+              <input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} placeholder="Dr(a). Nome Sobrenome" />
+            </div>
+            <div className="field">
+              <label>CRM</label>
+              <input type="text" value={regCrm} onChange={(e) => setRegCrm(e.target.value)} placeholder="00000-SP" />
+            </div>
+            <div className="field">
+              <label>Função</label>
+              <select value={regRole} onChange={(e) => setRegRole(e.target.value)}>
+                <option value="doctor">Médico(a)</option>
+                <option value="admin">Administrador(a)</option>
+                <option value="auditor">Auditor(a)</option>
+              </select>
+            </div>
+            {regError && <div className="msg-error">{regError}</div>}
+            <button type="submit" className="btn btn-primary" disabled={regLoading} style={{ width: "100%", marginTop: 8 }}>
+              {regLoading ? "Criando..." : "Criar conta"}
+            </button>
+          </form>
+        )}
+
+        <hr style={{ margin: "20px 0", border: "none", borderTop: "1px solid var(--border)" }} />
+        <button className="btn btn-ghost" style={{ width: "100%" }} onClick={() => { setShowRegister(!showRegister); setError(""); setRegError(""); }}>
+          {showRegister ? "← Voltar ao login" : "Criar conta"}
+        </button>
       </div>
     </div>
   );
