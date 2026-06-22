@@ -168,7 +168,7 @@ class ReportResponse(BaseModel):
     status: str
     error_message: Optional[str] = None
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "protected_namespaces": ()}
 
 
 class ReportDetailResponse(ReportResponse):
