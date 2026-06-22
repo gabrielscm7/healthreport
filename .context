@@ -1,0 +1,219 @@
+# Contexto do Projeto — Regras de Negócio (Alto Nível)
+
+> Extraído de PRD.md + SPEC.md. Use como referência rápida durante o desenvolvimento.
+
+---
+
+## 1. O QUE O SISTEMA FAZ
+
+Sistema de IA que automatiza **organização de exames médicos** e **geração de relatórios estruturados** para apoio à decisão clínica (aptidão cirúrgica). Interface via WhatsApp.
+
+**Tagline:** "Exames organizados. Relatórios inteligentes. Sempre a decisão do médico."
+
+---
+
+## 2. REGRAS DE NEGÓCIO (CONSTRAINTS)
+
+### Regra 1 — IA nunca decide
+A IA é ferramenta de apoio. Quem aprova cirurgia é SEMPRE o médico.
+Nunca gerar diagnóstico. Nunca comunicar paciente diretamente.
+
+### Regra 2 — Disclaimer obrigatório
+Todo relatório DEVE conter:
+_"Este relatório é ferramenta de apoio à decisão clínica. A decisão final é responsabilidade do médico."_
+
+### Regra 3 — Consentimento prévio obrigatório
+Nenhum dado de paciente pode ser processado sem consentimento explícito registrado.
+Se consentimento expirado ou revogado → BLOQUEAR tudo.
+
+### Regra 4 — Dados sensíveis criptografados (LGPD)
+- Em repouso: AES-256-GCM
+- Em trânsito: TLS 1.3
+- PII nunca em logs (sempre mascarado)
+- Retenção mínima: 7 anos
+
+### Regra 5 — Audit log imutável
+Toda ação registrada: quem, quando, o quê, IP, resultado.
+Nunca permitir UPDATE/DELETE na tabela de auditoria.
+
+### Regra 6 — RBAC (Controle de Acesso)
+| Role | Pode |
+|------|------|
+| Admin | Criar, editar, deletar, auditar |
+| Doctor | Ver apenas pacientes vinculados, gerar relatórios |
+| Patient | Ver apenas seus próprios dados |
+| Auditor | Apenas ler audit logs |
+
+### Regra 7 — Relacionamento médico-paciente
+Médico só acessa dados de pacientes com vínculo ativo em `doctor_patient_access`.
+
+### Regra 8 — Resposta imediata (ACK)
+Webhook Whaha deve responder em <500ms com ACK. Processamento real é assíncrono.
+
+### Regra 9 — Modelos de IA definidos
+| Agente | Modelo | Função |
+|--------|--------|--------|
+| Admin Agent | Claude Haiku 4.5 | Organizar documentos, converter MD |
+| Specialist Agent | Claude Opus 4.6 | Analisar exames, gerar relatório |
+
+### Regra 10 — Stack fixa
+Sem n8n. Sem modelo local. Sem NoSQL.
+FastAPI + PostgreSQL + CrewAI + LangGraph + Railway.
+
+---
+
+## 3. FLUXOS PRINCIPAIS
+
+### Fluxo A: Organizar Exames (Admin)
+```
+WhatsApp: "Organize exames de João Silva"
+→ Webhook Whaha → FastAPI (ACK em <500ms)
+→ Celery worker → CrewAI Admin Agent
+  → list_google_docs → read_google_doc → convert_to_markdown → upload_to_s3
+→ Salva em medical_exams
+→ Responde WhatsApp com referência
+→ Audit log registrado
+```
+
+### Fluxo B: Gerar Relatório (Médico)
+```
+WhatsApp: "Gere relatório para João Silva, ref #ABC123"
+→ FastAPI valida consentimento + permissão médico-paciente
+→ Se negado: responde "Sem consentimento" + audit log (denied)
+→ Se autorizado: Celery → LangGraph Specialist
+  → analyze → validate → structure → finalize
+→ Salva em medical_reports (criptografado)
+→ Envia PDF via WhatsApp
+→ Audit log registrado
+```
+
+---
+
+## 4. TIPOS / ENUMS
+
+```python
+# Role de usuário
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    DOCTOR = "doctor"
+    PATIENT = "patient"
+    AUDITOR = "auditor"
+
+# Tipo de consentimento
+class ConsentType(str, Enum):
+    AI_ANALYSIS = "ai_analysis"
+    DATA_STORAGE = "data_storage"
+    RESEARCH = "research"
+
+# Formato de relatório
+class ReportFormat(str, Enum):
+    JSON = "json"
+    PDF = "pdf"
+    MARKDOWN = "markdown"
+
+# Status de relatório
+class ReportStatus(str, Enum):
+    GENERATING = "generating"
+    SUCCESS = "success"
+    ERROR = "error"
+
+# Nível de acesso médico-paciente
+class AccessLevel(str, Enum):
+    READ = "read"
+    WRITE = "write"
+    FULL = "full"
+
+# Status de task assíncrona
+class TaskStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+# Tipos de ação no audit log
+class AuditAction(str, Enum):
+    VIEW_EXAM = "VIEW_EXAM"
+    CREATE_REPORT = "CREATE_REPORT"
+    DOWNLOAD = "DOWNLOAD"
+    EXPORT = "EXPORT"
+    DELETE = "DELETE"
+    LOGIN = "LOGIN"
+    WEBHOOK_RECEIVED = "WEBHOOK_RECEIVED"
+    ORGANIZE_START = "ORGANIZE_START"
+    ORGANIZE_SUCCESS = "ORGANIZE_SUCCESS"
+    ORGANIZE_ERROR = "ORGANIZE_ERROR"
+    REPORT_REQUEST = "REPORT_REQUEST"
+    REPORT_SUCCESS = "REPORT_SUCCESS"
+    REPORT_ERROR = "REPORT_ERROR"
+    WHATSAPP_SENT = "WHATSAPP_SENT"
+
+# Tipo de task
+class TaskType(str, Enum):
+    ORGANIZE_EXAMS = "organize_exams"
+    GENERATE_REPORT = "generate_report"
+```
+
+---
+
+## 5. MODELOS DE DADOS (Visão Simplificada)
+
+```
+users                patients             medical_exams
+├─ id: UUID          ├─ id: UUID          ├─ id: UUID
+├─ email             ├─ full_name         ├─ patient_id → patients
+├─ password_hash      ├─ cpf_hash           ├─ exam_type
+├─ role: UserRole    ├─ date_of_birth     ├─ exam_date
+├─ crm               ├─ contact_phone     ├─ content_encrypted (AES-256)
+├─ phone             └─ ...               ├─ markdown_content_encrypted
+├─ two_fa_enabled                         ├─ google_doc_id
+├─ two_fa_secret                          └─ uploaded_by → users
+└─ ...
+
+medical_reports       audit_logs            async_tasks
+├─ id: UUID           ├─ id: BIGSERIAL      ├─ id: UUID
+├─ patient_id →       ├─ user_id → users    ├─ task_type: TaskType
+├─ requesting_doctor   ├─ patient_id →       ├─ patient_id →
+├─ exams_used: UUID[] ├─ action_type         ├─ status: TaskStatus
+├─ report_encrypted   ├─ resource_type       ├─ input_data: JSONB
+├─ report_format       ├─ resource_id         ├─ output_data: JSONB
+├─ model_version       ├─ status              └─ ...
+├─ model_confidence    ├─ ip_address
+├─ status: ReportSt.   ├─ user_agent
+└─ ...                 └─ ...
+
+patient_consents      doctor_patient_access
+├─ id: UUID           ├─ id: UUID
+├─ patient_id →       ├─ doctor_id → users
+├─ doctor_id →        ├─ patient_id → patients
+├─ consent_type        ├─ access_level: AccessLevel
+├─ consent_text        ├─ access_granted_at
+├─ signed_at           ├─ access_revoked_at
+├─ expires_at          └─ granted_by → users
+└─ signature_hash
+```
+
+---
+
+## 6. MÉTRICAS DE SUCESSO
+
+| Métrica | Target |
+|---------|--------|
+| Latência webhook ACK | <500ms |
+| Tempo processamento admin | <5 min |
+| Tempo geração relatório | <3 min |
+| Taxa de sucesso relatórios | >95% |
+| Uptime | >99.5% |
+| Throughput | 100 req/min |
+| Registro de auditoria | 100% das ações |
+
+---
+
+## 7. NÃO FAZER (SCOPE EXCLUÍDO)
+
+- IA aprovar/diagnosticar (sempre médico)
+- IA comunicar diretamente com paciente
+- Armazenar PII em logs
+- Hard delete de dados (sempre soft delete)
+- Usar NoSQL para audit trail
+- n8n (apenas Railway + FastAPI)
+- Modelo local (ex: DeepSeek) — apenas Claude

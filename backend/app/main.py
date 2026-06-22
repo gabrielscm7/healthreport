@@ -1,8 +1,5 @@
-from pathlib import Path
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.middleware.rate_limit import RateLimitMiddleware
@@ -65,10 +62,4 @@ app.include_router(doctor_router)
 app.include_router(patient_portal_router)
 app.include_router(comparison_router)
 
-# Serve frontend SPA at /app
-frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
-if frontend_dir.exists():
-    app.mount(
-        "/app", StaticFiles(directory=str(frontend_dir), html=True), name="frontend"
-    )
-    print(f"Frontend mounted at /app — {frontend_dir}")
+

@@ -1,4 +1,4 @@
-# backend
+# Python
 __pycache__/
 *.pyc
 .venv/
@@ -12,11 +12,16 @@ htmlcov/
 .pytest_cache/
 migrations/versions/
 
-# frontend & node dependencies
+# Node
 node_modules/
-.eslintcache
-.DS_Store
-dist-frontend/
+.next/
+out/
+.env.local
+*.tsbuildinfo
+next-env.d.ts
 
-# Local configuration files
-.context
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

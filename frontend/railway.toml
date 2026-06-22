@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[variables]
+NODE_VERSION = "20"
+
+[service]
+nixpacks = ["node"]
+startCommand = "npm run start"
