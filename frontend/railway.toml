@@ -6,4 +6,4 @@ NODE_VERSION = "20"
 
 [service]
 nixpacks = ["node"]
-startCommand = "npm run start"
+startCommand = "node_modules/.bin/next start --port $PORT"
