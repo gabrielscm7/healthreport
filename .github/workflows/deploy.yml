@@ -1,11 +1,10 @@
-name: Deploy to Railway
+name: CI — Lint & Test
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 jobs:
   lint:
@@ -22,9 +21,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
           pip install ruff mypy
-      - name: Lint with ruff
+      - name: Lint
         run: ruff check backend/app/ || true
-      - name: Type check with mypy
+      - name: Type check
         run: mypy backend/app/ --ignore-missing-imports || true
 
   test:
@@ -43,7 +42,6 @@ jobs:
         image: redis:7-alpine
         ports:
           - 6379:6379
-
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.11
@@ -64,43 +62,3 @@ jobs:
         run: |
           cd backend
           python -m pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          file: backend/coverage.xml
-
-  load-test:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Install locust
-        run: pip install locust
-      - name: Run load test (dry-run)
-        run: |
-          locust -f backend/tests/load/locustfile.py \
-            --headless \
-            --users 10 \
-            --spawn-rate 2 \
-            --run-time 30s \
-            --host http://localhost:8000 \
-            --only-summary || true
-
-  deploy:
-    needs: test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-      - name: Deploy to Railway
-        run: railway up --service healthreport --project "5be0c83d-d040-44ff-8e39-ff20958360c5" --environment production
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        working-directory: backend
