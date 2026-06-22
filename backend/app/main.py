@@ -32,7 +32,7 @@ app.add_middleware(RateLimitMiddleware, max_requests=100, window_seconds=60)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
