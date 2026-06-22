@@ -3,7 +3,8 @@ builder = "nixpacks"
 
 [variables]
 NODE_VERSION = "20"
+NIXPACKS_METADATA = "nextjs"
 
 [service]
 nixpacks = ["node"]
-startCommand = "node_modules/.bin/next start --port $PORT"
+startCommand = "npm start"
